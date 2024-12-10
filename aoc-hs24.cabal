@@ -91,3 +91,4 @@ library day09
     hs-source-dirs: lib/09
     exposed-modules: Day09
     build-depends: common, text, parsec, containers
+    ghc-options: -fno-ignore-asserts
