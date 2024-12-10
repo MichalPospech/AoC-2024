@@ -3,7 +3,7 @@ module Day09 (task1, task2, parser) where
 import Control.Exception (assert)
 import Data.Char (digitToInt)
 import Data.List (sortBy)
-import Data.Map (lookupGT, lookupGE)
+import Data.Map (lookupGE, lookupGT)
 import Data.Map.Lazy (Map, delete, fromList, insert)
 import Data.Text (Text, pack)
 import Debug.Trace (trace)
@@ -79,7 +79,7 @@ reshuffleFiles blocks =
       spaceMap = createEmptySpaceMap blocks
    in reshuffleFiles' fileList spaceMap
 
-reshuffleFiles' :: [DiskBlockWithIndex] -> [EmptySpace]-> [DiskBlockWithIndex]
+reshuffleFiles' :: [DiskBlockWithIndex] -> [EmptySpace] -> [DiskBlockWithIndex]
 reshuffleFiles' [] _ = []
 reshuffleFiles' (db@(DiskBlockWithIndex f@(File fileSize _) fileIndex) : fs) spaceMap =
   case tryGetEmptySpace spaceMap fileSize fileIndex of
@@ -88,8 +88,9 @@ reshuffleFiles' (db@(DiskBlockWithIndex f@(File fileSize _) fileIndex) : fs) spa
       where
         updatedMap
           | spaceSize == fileSize = h ++ t
-          | otherwise =  let (front, back) = span (\(EmptySpace _ si) -> si <= emptySpaceIndex + fileSize) (h ++ t) in
-            front ++ [EmptySpace (spaceSize - fileSize) (emptySpaceIndex + fileSize)] ++ back
+          | otherwise =
+              let (front, back) = span (\(EmptySpace _ si) -> si <= emptySpaceIndex + fileSize) (h ++ t)
+               in front ++ [EmptySpace (spaceSize - fileSize) (emptySpaceIndex + fileSize)] ++ back
 reshuffleFiles' _ _ = undefined
 
 calculateChecksum :: [DiskBlockWithIndex] -> Int
@@ -98,11 +99,12 @@ calculateChecksum x = assert (validOrdering x) $ sum $ map checksum x
     checksum (DiskBlockWithIndex (Empty _) _) = 0
     checksum (DiskBlockWithIndex (File size fileId) index) = blockValue fileId size index
 
-tryGetEmptySpace :: [EmptySpace] -> Int -> Int -> Maybe ([EmptySpace], EmptySpace , [EmptySpace])
-tryGetEmptySpace spaceMap spaceSize maxIndex =  let (h, t) = break (\(EmptySpace ss si) -> ss >= spaceSize && si <= maxIndex) spaceMap in
-  case t of
-    (es:ess) -> Just (h, es, ess)
-    [] -> Nothing
+tryGetEmptySpace :: [EmptySpace] -> Int -> Int -> Maybe ([EmptySpace], EmptySpace, [EmptySpace])
+tryGetEmptySpace spaceMap spaceSize maxIndex =
+  let (h, t) = break (\(EmptySpace ss si) -> ss >= spaceSize && si <= maxIndex) spaceMap
+   in case t of
+        (es : ess) -> Just (h, es, ess)
+        [] -> Nothing
 
 validOrdering blocks = validOrdering' (sortBy (\(DiskBlockWithIndex _ s1) (DiskBlockWithIndex _ s2) -> compare s1 s2) blocks) 0
 
