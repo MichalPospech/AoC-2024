@@ -1,11 +1,10 @@
 module Day10 (parser, task1, task2) where
 
 import Data.Char (digitToInt)
-import Data.Graph (Graph, Vertex, graphFromEdges, reachable, reverseTopSort, topSort, vertices)
+import Data.Graph (Graph, Vertex, graphFromEdges, reachable, reverseTopSort, vertices)
 import Data.Map qualified as M (Map, empty, foldrWithKey, insert, (!))
 import Data.Matrix (Matrix (ncols, nrows), fromLists, safeGet, (!))
 import Data.Text (Text, pack)
-import Debug.Trace (trace)
 import Text.Parsec (many, newline, sepBy)
 import Text.Parsec.Char (digit)
 import Text.Parsec.Text (Parser)
@@ -61,6 +60,7 @@ task1 = pack . show . getReachableNines
 task2 :: Map -> Text
 task2 = pack . show . getNumPaths
 
+dirs :: [(Int, Int)]
 dirs = [(0, 1), (1, 0), (0, -1), (-1, 0)]
 
 createGraph :: (Eq node, Num node, Show node) => Matrix node -> (Graph, Vertex -> (node, (Int, Int), [(Int, Int)]), (Int, Int) -> Maybe Vertex)
