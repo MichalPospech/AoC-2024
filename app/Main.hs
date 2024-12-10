@@ -8,6 +8,7 @@ import Data.Text
 import Data.Text.IO (putStrLn, readFile)
 import Day01 qualified
 import Day09 qualified
+import Day10 qualified
 import Options.Applicative
 import Text.Parsec (parse)
 import Text.Parsec.Text qualified as P (Parser)
@@ -52,4 +53,6 @@ data DaySolver = DaySolver
 daySolvers :: Int -> DaySolver
 daySolvers 1 = DaySolver (solve Day01.parser Day01.task1) (solve Day01.parser Day01.task2)
 daySolvers 9 = DaySolver (solve Day09.parser Day09.task1) (solve Day09.parser Day09.task2)
+daySolvers 10 = DaySolver (solve Day10.parser Day10.task1) (solve Day10.parser Day10.task2)
+
 daySolvers _ = undefined
