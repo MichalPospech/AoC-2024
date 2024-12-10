@@ -1,14 +1,14 @@
 module Day10 (parser, task1, task2) where
 
 import Data.Char (digitToInt)
-import Data.Graph (Graph, Vertex, graphFromEdges, reachable, vertices)
+import Data.Graph (Graph, Vertex, graphFromEdges, reachable, reverseTopSort, topSort, vertices)
+import Data.Map qualified as M (Map, empty, foldrWithKey, insert, (!))
 import Data.Matrix (Matrix (ncols, nrows), fromLists, safeGet, (!))
-import Data.Text (pack, Text)
-import Text.Parsec (newline, sepBy, space, many)
+import Data.Text (Text, pack)
+import Debug.Trace (trace)
+import Text.Parsec (many, newline, sepBy)
 import Text.Parsec.Char (digit)
 import Text.Parsec.Text (Parser)
-import Debug.Trace (trace)
-
 
 type Map = Matrix Int
 
@@ -19,21 +19,47 @@ parser = do
 
 lineParser :: Parser [Int]
 lineParser = do
-  elems <- many digit 
+  elems <- many digit
   return (map digitToInt elems)
 
 getReachableNines :: (Eq b, Num b, Show b) => Matrix b -> Int
 getReachableNines hikingMap = (length . concatMap (filter ((9 ==) . getVertexHeight) . reachable g) . filter ((0 ==) . getVertexHeight)) (vertices g)
   where
-    (g, vertexGetter, _) = createGraph hikingMap
+    (g, nodeGetter, _) = createGraph hikingMap
     getVertexHeight v = height
       where
-        (height, _, _) = vertexGetter v
+        (height, _, _) = nodeGetter v
+
+getNumPaths :: (Eq b, Num b, Show b) => Matrix b -> Int
+getNumPaths hikingMap = M.foldrWithKey updateCounter 0 numpathsToEnd
+  where
+    (g, nodeGetter, vertexGetter) = createGraph hikingMap
+    numpathsToEnd :: M.Map Vertex Int = foldl updatePathCounts M.empty (reverseTopSort g)
+    updatePathCounts pathCounts vertex = case getVertexHeight vertex of
+      9 -> M.insert vertex 1 pathCounts
+      _ -> M.insert vertex (sumUpPathsFromVertex vertex) pathCounts
+      where
+        sumUpPathsFromVertex v = sum $ map pathsViaNeighbor (getVertexNeighbors v)
+          where
+            pathsViaNeighbor n = case vertexGetter n of
+              Nothing -> 0
+              Just neighborVertex -> pathCounts M.! neighborVertex
+    updateCounter vertex totalPaths paths = case getVertexHeight vertex of
+      0 -> paths + totalPaths
+      _ -> paths
+
+    getVertexHeight v = height
+      where
+        (height, _, _) = nodeGetter v
+    getVertexNeighbors v = neighbors
+      where
+        (_, _, neighbors) = nodeGetter v
 
 task1 :: Map -> Text
-task1 = pack . show . getReachableNines 
+task1 = pack . show . getReachableNines
 
-task2 = undefined
+task2 :: Map -> Text
+task2 = pack . show . getNumPaths
 
 dirs = [(0, 1), (1, 0), (0, -1), (-1, 0)]
 
