@@ -1,33 +1,38 @@
-module Day01 (task1, task2, parser1, parser2) where
-import Data.Text (Text, pack)
+module Day01 (task1, task2, parser) where
+
 import Data.List (sort)
-import Data.Attoparsec.Text
-    ( sepBy, decimal, skipSpace, endOfLine, Parser )
+import Data.MultiSet (fromAscList, occur)
+import Data.Text (Text, pack)
+import Text.Parsec (endOfLine, skipMany1, space)
+import Text.Parsec.Combinator (sepBy1)
+import Text.Parsec.Number
+import Text.Parsec.Text
+  ( Parser  )
 
-parser1 :: Parser LocationList
-parser1 = do
-    uncurry LocationList . unzip <$> dataParser
-parser2 :: Parser LocationList
-parser2 = parser1
+parser :: Parser LocationList
+parser = do
+  uncurry LocationList . unzip <$> dataParser
 
+data LocationList = LocationList [Int] [Int] deriving (Show)
 
-data LocationList = LocationList [Integer] [Integer]
+calculateDistance :: LocationList -> Int
+calculateDistance (LocationList l1 l2) = sum $ zipWith (\x y -> abs (x - y)) (sort l1) (sort l2)
 
+calculateSimilarity :: LocationList -> Int
+calculateSimilarity (LocationList l1 l2) = let occurences = fromAscList $ sort l2 in foldr (\x a -> a + x * occur x occurences) 0 l1
 
+dataParser :: Parser [(Int, Int)]
+dataParser = sepBy1 lineParser endOfLine
 
-calculateDistance :: LocationList -> Integer
-calculateDistance (LocationList l1 l2) = sum $ zipWith  (\ x y -> abs (x-y)) (sort l1) (sort l2)
-dataParser :: Parser [(Integer,Integer)]
-dataParser = sepBy lineParser endOfLine
-lineParser :: Parser (Integer,Integer)
+lineParser :: Parser (Int, Int)
 lineParser = do
-    left <- decimal
-    skipSpace
-    right <- decimal
-    return (left, right)
-
+  left <- int
+  skipMany1 space
+  right <- int
+  return (left, right)
 
 task1 :: LocationList -> Text
 task1 input = pack $ show $ calculateDistance input
-task2 :: () -> Text
-task2 = undefined
+
+task2 :: LocationList -> Text
+task2 input = pack $ show $ calculateSimilarity input

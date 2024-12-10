@@ -57,7 +57,7 @@ common shared-properties
   ghc-options:
     -Wall
 
-executable aoc-hs24
+executable aoc
     -- Import common warning flags.
     import:           shared-properties
 
@@ -72,7 +72,7 @@ executable aoc-hs24
 
     -- Directories containing source files.
     hs-source-dirs:   app
-    build-depends:  common, day01, text, attoparsec
+    build-depends:  common, day01, text, parsec, optparse-applicative, day09
 
 library common
     import: shared-properties
@@ -84,4 +84,10 @@ library day01
     import: shared-properties
     hs-source-dirs: lib/01
     exposed-modules: Day01
-    build-depends: common, text, attoparsec
+    build-depends: common, text, parsec, parsec3-numbers, multiset
+
+library day09
+    import: shared-properties
+    hs-source-dirs: lib/09
+    exposed-modules: Day09
+    build-depends: common, text, parsec, containers
