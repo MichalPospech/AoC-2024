@@ -67,8 +67,8 @@ instance Eq EmptySpace where
 instance Ord EmptySpace where
   compare (EmptySpace size1 offset1) (EmptySpace size2 offset2) = compare size1 size2 <> compare offset1 offset2
 
-createEmptySpaceMap :: [DiskBlockWithIndex] -> Map EmptySpace ()
-createEmptySpaceMap blocks = fromList [(EmptySpace size offset, ()) | DiskBlockWithIndex (Empty size) offset <- blocks, size /= 0]
+createEmptySpaceMap :: [DiskBlockWithIndex] -> [EmptySpace]
+createEmptySpaceMap blocks = [EmptySpace size offset | DiskBlockWithIndex (Empty size) offset <- blocks, size /= 0]
 
 createUsedSpaceList :: [DiskBlockWithIndex] -> [DiskBlockWithIndex]
 createUsedSpaceList blocks = [l | l@(DiskBlockWithIndex (File _ _) _) <- blocks]
@@ -79,16 +79,17 @@ reshuffleFiles blocks =
       spaceMap = createEmptySpaceMap blocks
    in reshuffleFiles' fileList spaceMap
 
-reshuffleFiles' :: [DiskBlockWithIndex] -> Map EmptySpace () -> [DiskBlockWithIndex]
+reshuffleFiles' :: [DiskBlockWithIndex] -> [EmptySpace]-> [DiskBlockWithIndex]
 reshuffleFiles' [] _ = []
-reshuffleFiles' (f@(DiskBlockWithIndex (File size fileId) fileIndex) : fs) spaceMap =
-  case tryGetEmptySpace spaceMap size fileIndex of
-    Nothing -> f : reshuffleFiles' fs spaceMap
-    Just es@(EmptySpace spaceSize emptySpaceIndex) -> DiskBlockWithIndex (File size fileId) emptySpaceIndex : reshuffleFiles' fs (updateMap spaceMap)
+reshuffleFiles' (db@(DiskBlockWithIndex f@(File fileSize _) fileIndex) : fs) spaceMap =
+  case tryGetEmptySpace spaceMap fileSize fileIndex of
+    Nothing -> db : reshuffleFiles' fs spaceMap
+    Just (h, EmptySpace spaceSize emptySpaceIndex, t) -> DiskBlockWithIndex f emptySpaceIndex : reshuffleFiles' fs updatedMap
       where
-        updateMap m
-          | spaceSize == size = delete es m
-          | otherwise = insert (EmptySpace (spaceSize - size) (emptySpaceIndex + size)) () (delete es m)
+        updatedMap
+          | spaceSize == fileSize = h ++ t
+          | otherwise =  let (front, back) = span (\(EmptySpace _ si) -> si <= emptySpaceIndex + fileSize) (h ++ t) in
+            front ++ [EmptySpace (spaceSize - fileSize) (emptySpaceIndex + fileSize)] ++ back
 reshuffleFiles' _ _ = undefined
 
 calculateChecksum :: [DiskBlockWithIndex] -> Int
@@ -97,10 +98,11 @@ calculateChecksum x = assert (validOrdering x) $ sum $ map checksum x
     checksum (DiskBlockWithIndex (Empty _) _) = 0
     checksum (DiskBlockWithIndex (File size fileId) index) = blockValue fileId size index
 
-tryGetEmptySpace :: Map EmptySpace v -> Int -> Int -> Maybe EmptySpace
-tryGetEmptySpace spaceMap spaceSize maxIndex = do
-  (e@(EmptySpace _ index), _) <- lookupGE (EmptySpace spaceSize 0) spaceMap
-  if maxIndex >= index then Just e else Nothing
+tryGetEmptySpace :: [EmptySpace] -> Int -> Int -> Maybe ([EmptySpace], EmptySpace , [EmptySpace])
+tryGetEmptySpace spaceMap spaceSize maxIndex =  let (h, t) = break (\(EmptySpace ss si) -> ss >= spaceSize && si <= maxIndex) spaceMap in
+  case t of
+    (es:ess) -> Just (h, es, ess)
+    [] -> Nothing
 
 validOrdering blocks = validOrdering' (sortBy (\(DiskBlockWithIndex _ s1) (DiskBlockWithIndex _ s2) -> compare s1 s2) blocks) 0
 
