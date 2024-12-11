@@ -104,6 +104,6 @@ library day11
     import: shared-properties
     hs-source-dirs: lib/11
     exposed-modules: Day11
-    build-depends: common, text, parsec, parsec3-numbers
+    build-depends: common, text, parsec, parsec3-numbers, memoize
     ghc-options: -fno-ignore-asserts
 
