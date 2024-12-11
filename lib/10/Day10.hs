@@ -1,3 +1,5 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+
 module Day10 (parser, task1, task2) where
 
 import Data.Char (digitToInt)
@@ -8,6 +10,7 @@ import Data.Text (Text, pack)
 import Text.Parsec (many, newline, sepBy)
 import Text.Parsec.Char (digit)
 import Text.Parsec.Text (Parser)
+import Prelude (Int, Eq (..), Num (..), Show, Maybe (..), Foldable (..), ($), map, show, (.), Bool (..), Monad (..), concatMap, filter)
 
 type Map = Matrix Int
 
