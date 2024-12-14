@@ -10,6 +10,8 @@ import Day09 qualified
 import Day10 qualified
 import Day11 qualified
 import Day13 qualified
+import Day14 qualified
+
 import Options.Applicative
 import Text.Parsec (parse)
 import Text.Parsec.Text qualified as P (Parser)
@@ -57,6 +59,7 @@ daySolvers 9 = DaySolver (solve Day09.parser Day09.task1) (solve Day09.parser Da
 daySolvers 10 = DaySolver (solve Day10.parser Day10.task1) (solve Day10.parser Day10.task2)
 daySolvers 11 = DaySolver (solve Day11.parser Day11.task1) (solve Day11.parser Day11.task2)
 daySolvers 13 = DaySolver (solve Day13.parser Day13.task1) (solve Day13.parser Day13.task2)
+daySolvers 14 = DaySolver (solve Day14.parser Day14.task1) (solve Day14.parser Day14.task2)
 
 
 daySolvers _ = undefined
