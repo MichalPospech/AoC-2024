@@ -72,7 +72,7 @@ executable aoc
 
     -- Directories containing source files.
     hs-source-dirs:   app
-    build-depends:  common, day01, text, parsec, optparse-applicative, day09, day10, day11, day13, day14
+    build-depends:  common, day01, text, parsec, optparse-applicative, day09, day10, day11, day13, day14, day19
 
 library common
     import: shared-properties
@@ -120,5 +120,13 @@ library day14
     exposed-modules: Day14
     build-depends: common, text, parsec, parsec3-numbers, matrix
     ghc-options: -fno-ignore-asserts
+
+library day19
+    import: shared-properties
+    hs-source-dirs: lib/19
+    exposed-modules: Day19
+    build-depends: common, text, parsec, mtl, containers, extra
+    ghc-options: -fno-ignore-asserts
+
 
 
