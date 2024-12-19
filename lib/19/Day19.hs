@@ -2,13 +2,11 @@ module Day19 (parser, task1, task2) where
 
 import Control.Monad.State (gets, modify, runState)
 import Control.Monad.State.Lazy (MonadState)
-import Data.Foldable.Extra (anyM)
 import Data.Function (fix)
 import Data.List (isPrefixOf)
 import Data.Map (empty, insert, lookup)
 import Data.Map.Strict (Map)
 import Data.Text (Text, pack)
-import Debug.Trace (trace)
 import Text.Parsec (newline, oneOf, sepBy, string)
 import Text.Parsec.Prim (many)
 import Text.Parsec.Text (Parser)
