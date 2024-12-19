@@ -26,8 +26,8 @@ getNumStones stoneNum blinksLeft
   | otherwise = itself (stoneNum * 2024) remainingBlinks
   where
     remainingBlinks = blinksLeft - 1
-    baseTen = floor (logBase 10 (fromInteger stoneNum))
-    multipleTen = 10 ^ (baseTen `div` 2 + 1)
+    baseTen = floor (logBase (10 :: Double) (fromInteger stoneNum))
+    multipleTen = 10 ^ (baseTen `div` (2 :: Integer) + 1)
     lowerPart = stoneNum `mod` multipleTen
     upperPart = stoneNum `div` multipleTen
     itself = memoize2 getNumStones

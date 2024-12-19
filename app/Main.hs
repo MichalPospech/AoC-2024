@@ -12,13 +12,12 @@ import Day11 qualified
 import Day13 qualified
 import Day14 qualified
 import Day19 qualified
-
 import Options.Applicative
 import Text.Parsec (parse)
 import Text.Parsec.Text qualified as P (Parser)
 import Text.Printf (printf)
 import Text.Show (show)
-import Prelude ( Either(..), IO, Int, undefined, ($), (=<<), Show )
+import Prelude (Either (..), IO, Int, undefined, ($), (=<<))
 
 data Args = Args Int Int Text
 
@@ -62,6 +61,4 @@ daySolvers 11 = DaySolver (solve Day11.parser Day11.task1) (solve Day11.parser D
 daySolvers 13 = DaySolver (solve Day13.parser Day13.task1) (solve Day13.parser Day13.task2)
 daySolvers 14 = DaySolver (solve Day14.parser Day14.task1) (solve Day14.parser Day14.task2)
 daySolvers 19 = DaySolver (solve Day19.parser Day19.task1) (solve Day19.parser Day19.task2)
-
-
 daySolvers _ = undefined

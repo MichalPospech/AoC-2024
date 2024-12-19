@@ -27,6 +27,7 @@ task1 (towels, patterns) = pack $ show res
   where
     (res, _) = runState (countPossible towels patterns) empty
 
+task2 :: ([Towel], [Pattern]) -> Text
 task2 (towels, patterns) = pack $ show res
   where
     (res, _) = runState (countPossibleWays towels patterns) empty
