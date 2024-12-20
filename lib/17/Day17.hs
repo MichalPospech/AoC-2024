@@ -6,7 +6,7 @@ import Control.Monad (when)
 import Control.Monad.RWS (MonadReader (ask), MonadState, MonadWriter, RWS, execRWS, gets, tell)
 import Control.Monad.RWS.Class (modify)
 import Data.Bits (xor)
-import Text.Parsec ( anyChar, char, newline, string, sepBy )
+import Text.Parsec ( char, newline, string, sepBy )
 import Text.Parsec.Combinator (choice)
 import Text.Parsec.Number (int)
 import Text.Parsec.Text (Parser)
@@ -56,7 +56,7 @@ modifyIp f m = m {ip = f ipVal}
   where
     ipVal = ip m
 
-data Instruction = Adv ComboOperand | Bxl LiteralOperand | Bst ComboOperand | Jnz LiteralOperand | Bxc | Out ComboOperand | Cdv ComboOperand | Bdv ComboOperand
+data Instruction = Adv ComboOperand | Bxl LiteralOperand | Bst ComboOperand | Jnz LiteralOperand | Bxc Int | Out ComboOperand | Cdv ComboOperand | Bdv ComboOperand
 
 eval :: (MonadState Memory m, MonadWriter [Int] m) => Instruction -> m ()
 eval (Jnz op) = do
@@ -75,7 +75,7 @@ eval (Bst op) = evalNormalInstruction $ do
   opVal <- readComboOp op
   let res = opVal `mod` 8
   modify (modifyB (const res))
-eval Bxc = evalNormalInstruction $ do
+eval (Bxc _) = evalNormalInstruction $ do
   bVal <- gets b
   cVal <- gets c
   let res = bVal `xor` cVal
@@ -166,8 +166,7 @@ parseJnz = parseLit' Jnz '3'
 parseBxc = do
   char '4'
   char ','
-  anyChar
-  return Bxc
+  Bxc <$> int
 
 parsecOut = parseCombo' Out '5'
 
@@ -178,9 +177,18 @@ parseCdv = parseCombo' Cdv '7'
 parseOp' t c opParser = do
   char c
   char ','
-  op <- opParser
-  return $ t op
+  t <$> opParser
 
 parseCombo' t c = parseOp' t c comboOpParser
 
 parseLit' t c = parseOp' t c literalParser
+
+decompileInstr :: Instruction -> [Int]
+decompileInstr (Adv op) = [0,op]
+decompileInstr (Bxl op) = [1,op]
+decompileInstr (Bst op) = [2,op]
+decompileInstr (Jnz op) = [3,op]
+decompileInstr (Bxc op) = [4,op]
+decompileInstr (Out op) = [5,op]
+decompileInstr (Bdv op) = [6,op]
+decompileInstr (Cdv op) = [7,op]
