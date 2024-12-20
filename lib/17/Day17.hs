@@ -1,20 +1,29 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Day17 (task1, task2, parser) where
 
 import Control.Monad (when)
 import Control.Monad.RWS (MonadReader (ask), MonadState, MonadWriter, RWS, execRWS, gets, tell)
 import Control.Monad.RWS.Class (modify)
 import Data.Bits (xor)
-import Text.Parsec (char, newline, string)
+import Text.Parsec ( anyChar, char, newline, string, sepBy )
+import Text.Parsec.Combinator (choice)
 import Text.Parsec.Number (int)
 import Text.Parsec.Text (Parser)
+import Data.Text (pack, intercalate, Text)
 
 data Program = Program Memory [Instruction]
 
-task1 = undefined
+task1 :: Program -> Text
+task1 p  = intercalate "," . map (pack . show ) $ out where
+  (_, out) = runEval p
 
 task2 = undefined
 
-parser = undefined
+parser = do
+  m <- memoryParser
+  newline
+  Program m <$> instructionsParser
 
 data Memory = Memory
   { ip :: Int,
@@ -73,7 +82,8 @@ eval Bxc = evalNormalInstruction $ do
   modify (modifyB (const res))
 eval (Out op) = evalNormalInstruction $ do
   val <- readComboOp op
-  tell [val]
+  let modVal = val `mod` 8
+  tell [modVal]
 
 evalNormalInstruction :: (MonadState Memory m) => m a -> m ()
 evalNormalInstruction f = do
@@ -133,16 +143,44 @@ memoryParser = do
         ip = 0
       }
 
-programParser = do
-    string "Program: "
+
+instructionsParser =  do
+  string "Program: "
+  instructionParser `sepBy` char ','
+instructionParser = choice [parseAdv, parseBdv, parseBxc, parseBxl, parseJnz, parseBst, parsecOut, parseCdv]
 
 literalParser :: Parser LiteralOperand
 literalParser = int
-comboOpParser :: Parser ComboOperand
-comboOpParser =  int
 
-parseCombo t = do 
-    string "0,"
-    op <- comboOpParser
-    return $ t op
-parseLit = 
+comboOpParser :: Parser ComboOperand
+comboOpParser = int
+
+parseAdv = parseCombo' Adv '0'
+
+parseBxl = parseLit' Bxl '1'
+
+parseBst = parseCombo' Bst '2'
+
+parseJnz = parseLit' Jnz '3'
+
+parseBxc = do
+  char '4'
+  char ','
+  anyChar
+  return Bxc
+
+parsecOut = parseCombo' Out '5'
+
+parseBdv = parseCombo' Bdv '6'
+
+parseCdv = parseCombo' Cdv '7'
+
+parseOp' t c opParser = do
+  char c
+  char ','
+  op <- opParser
+  return $ t op
+
+parseCombo' t c = parseOp' t c comboOpParser
+
+parseLit' t c = parseOp' t c literalParser
